@@ -1,0 +1,212 @@
+@import "tailwindcss";
+
+@import "@fontsource-variable/bricolage-grotesque/standard.css";
+@import "@fontsource-variable/source-serif-4/standard.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/ibm-plex-mono/600.css";
+
+/* ─────────────────────────────────────────────────────────────
+   Frost and firebrick.
+
+   The 2014 card's #b22222 is kept — it is the thing people
+   remember — but demoted to the accent of *action*: the make
+   button, the playhead, the alert. Spruce carries capacity and
+   confirmation, brass carries power and achievement, and the
+   neutrals are biased green-cyan so they read as frost and
+   enamel rather than as grey.
+   ───────────────────────────────────────────────────────────── */
+
+:root {
+  --paper: #edf1f0;
+  --surface: #f8fbfa;
+  --sunken: #e2e9e7;
+  --ink: #101e1a;
+  --ink-soft: #46574f;
+  --ink-mute: #5a6862;
+  --rule: #c9d7d3;
+  --rule-firm: #a9bdb7;
+  --rule-control: #67867d;
+  --brick: #b22222;
+  --brick-soft: #ce3a34;
+  --spruce: #1e4a3e;
+  --brass: #835f12;
+  --brass-bright: #b98a2e;
+  --snow: #ffffff;
+  --shadow-soft:
+    0 1px 2px rgb(16 30 26 / 0.06), 0 8px 24px -14px rgb(16 30 26 / 0.28);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0a1412;
+    --surface: #111e1b;
+    --sunken: #16241f;
+    --ink: #dee8e5;
+    --ink-soft: #a2b3ad;
+    --ink-mute: #7c8f88;
+    --rule: #22352f;
+    --rule-firm: #345048;
+    --rule-control: #4e786c;
+    --brick: #ec6a60;
+    --brick-soft: #f5877d;
+    --spruce: #62b39a;
+    --brass: #d8ac4a;
+    --brass-bright: #eec468;
+    --snow: #eaf3f0;
+    --shadow-soft:
+      0 1px 2px rgb(0 0 0 / 0.4), 0 10px 30px -16px rgb(0 0 0 / 0.8);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #0a1412;
+  --surface: #111e1b;
+  --sunken: #16241f;
+  --ink: #dee8e5;
+  --ink-soft: #a2b3ad;
+  --ink-mute: #7c8f88;
+  --rule: #22352f;
+  --rule-firm: #345048;
+  --rule-control: #4e786c;
+  --brick: #ec6a60;
+  --brick-soft: #f5877d;
+  --spruce: #62b39a;
+  --brass: #d8ac4a;
+  --brass-bright: #eec468;
+  --snow: #eaf3f0;
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.4), 0 10px 30px -16px rgb(0 0 0 / 0.8);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-mute: var(--ink-mute);
+  --color-rule: var(--rule);
+  --color-rule-firm: var(--rule-firm);
+  --color-rule-control: var(--rule-control);
+  --color-brick: var(--brick);
+  --color-brick-soft: var(--brick-soft);
+  --color-spruce: var(--spruce);
+  --color-brass: var(--brass);
+  --color-brass-bright: var(--brass-bright);
+
+  --font-display:
+    "Bricolage Grotesque Variable", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Source Serif 4 Variable", Georgia, "Times New Roman", serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+
+/* Element rules must sit in a layer, or being unlayered would rank them above
+   every Tailwind utility and silently win the font-family on each button. */
+@layer base {
+  html {
+    background: var(--paper);
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    /* Percentage, not px: a fixed root ignores the reader's own browser
+       default-size setting, and every size below is a rem off this one. */
+    font-size: 100%;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
+  }
+
+  button {
+    font: inherit;
+    color: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--brick);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+/* Numbers change every second; they must never move the layout. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+
+/* The make button: fast, interruptible feedback so a rapid clicker gets a
+   stream rather than a queue. */
+@keyframes present-arc {
+  from {
+    opacity: 1;
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--arc-x, 40px), -90px) scale(0.4)
+      rotate(var(--arc-r, 25deg));
+  }
+}
+
+.present-arc {
+  animation: present-arc 620ms cubic-bezier(0.2, 0.7, 0.4, 1) forwards;
+}
+
+@keyframes tick-pulse {
+  0% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  40% {
+    transform: scaleY(1.6);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.tick-pulse {
+  animation: tick-pulse 320ms ease-out;
+}
+
+@keyframes settle {
+  from {
+    transform: translateY(-6px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.settle {
+  animation: settle 240ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
