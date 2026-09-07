@@ -15,6 +15,7 @@ import {
 import { Catalogue } from "~/components/game/catalogue";
 import { EndCard } from "~/components/game/end-card";
 import { EventDialog } from "~/components/game/event-dialog";
+import { MiniProgressBar } from "~/components/game/mini-progress-bar";
 import { ResourceTrack } from "~/components/game/resource-track";
 import { SnowTickContext } from "~/components/game/snow-context";
 import { StatusBar } from "~/components/game/status-bar";
@@ -62,6 +63,9 @@ export default component$(() => {
   const previousBest = useSignal<Best | null>(null);
   const isNewBest = useSignal(false);
   const snowTick = useContext(SnowTickContext);
+
+  const trackerRef = useSignal<HTMLElement>();
+  const trackerPinned = useSignal(false);
 
   // eslint-disable-next-line qwik/no-use-visible-task
   useVisibleTask$(() => {
@@ -158,6 +162,46 @@ export default component$(() => {
     }
   }, EAGER);
 
+  /**
+   * The minimized tracker.
+   *
+   * Pins once the full status bar/year rail/resource tracks block has
+   * scrolled (almost) entirely past the top of the viewport. "Almost" rather
+   * than "entirely": on a typical phone the block is nearly a screen tall by
+   * itself, so demanding every last pixel of it clear the viewport would mean
+   * scrolling past everything below it too — on a fresh run, before the
+   * workshop and catalogue have grown, there often isn't enough page left to
+   * do that at all. A small buffer, scaled to the viewport rather than to the
+   * block's own height, keeps the trigger reachable regardless of how tall
+   * the run's content currently is. Scrolling back up clears it the same way.
+   */
+  // eslint-disable-next-line qwik/no-use-visible-task
+  useVisibleTask$(({ track, cleanup }) => {
+    track(() => state.phase);
+    if (state.phase !== "running" || !trackerRef.value) return;
+    const el = trackerRef.value;
+
+    let queued = false;
+    const evaluate = () => {
+      queued = false;
+      trackerPinned.value =
+        el.getBoundingClientRect().bottom < window.innerHeight * 0.35;
+    };
+    const onScrollOrResize = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(evaluate);
+    };
+
+    evaluate();
+    window.addEventListener("scroll", onScrollOrResize, { passive: true });
+    window.addEventListener("resize", onScrollOrResize);
+    cleanup(() => {
+      window.removeEventListener("scroll", onScrollOrResize);
+      window.removeEventListener("resize", onScrollOrResize);
+    });
+  }, EAGER);
+
   const again = $(() => {
     previousBest.value = null;
     isNewBest.value = false;
@@ -171,16 +215,20 @@ export default component$(() => {
     <>
       {state.phase === "running" && (
         <div class="flex flex-col gap-4">
-          <StatusBar state={state} />
+          <div ref={trackerRef} class="flex flex-col gap-4">
+            <StatusBar state={state} />
 
-          <section class="border-rule bg-surface border px-5 pt-4 pb-3">
-            <YearRail state={state} bestTick={best?.tick ?? null} />
-            <div class="border-rule mt-3 border-t">
-              <ResourceTrack state={state} kind="presents" />
-              <ResourceTrack state={state} kind="capacity" />
-              <ResourceTrack state={state} kind="power" />
-            </div>
-          </section>
+            <section class="border-rule bg-surface border px-5 pt-4 pb-3">
+              <YearRail state={state} bestTick={best?.tick ?? null} />
+              <div class="border-rule mt-3 border-t">
+                <ResourceTrack state={state} kind="presents" />
+                <ResourceTrack state={state} kind="capacity" />
+                <ResourceTrack state={state} kind="power" />
+              </div>
+            </section>
+          </div>
+
+          <MiniProgressBar state={state} pinned={trackerPinned.value} />
 
           <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
             <Workshop state={state} />
