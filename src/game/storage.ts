@@ -92,3 +92,10 @@ export const loadTheme = (): ThemePreference => {
 
 export const saveTheme = (theme: ThemePreference): void =>
   write(THEME_KEY, theme);
+
+const NAME_KEY = "present-delivery:name";
+
+/** The name last posted to the scoreboard, so nobody types it twice. */
+export const loadName = (): string => read<string>(NAME_KEY) ?? "";
+
+export const saveName = (name: string): void => write(NAME_KEY, name);

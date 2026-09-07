@@ -4,15 +4,30 @@ An interactive Christmas card. You have from Boxing Day 2025 to Christmas Day
 2026 — one real second to the half-day, so **twelve minutes and eight
 seconds** — to rebuild Father Christmas's workshop, sleigh and herd.
 
-A Qwik SPA with Tailwind 4, built to the static adapter. No backend; the only
-persistence is the browser's own storage.
+Qwik City and Tailwind 4 on a Cloudflare Worker, with a D1 database behind the
+scoreboard. Your own run — the year in progress, your best finishes, your theme
+— still lives in the browser's own storage; only the scoreboard leaves it.
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173
-npm run test       # 44 acceptance tests against the game model
-npm run build      # static site in dist/
+npm run db.migrate.local   # create the local D1 database
+npm run dev                # http://localhost:5173, with local bindings
+npm run test               # 44 acceptance tests against the game model
+npm run build              # dist/ (assets) and server/ (the Worker)
+npm run preview            # the built Worker under wrangler dev
 ```
+
+## Deploying
+
+```bash
+npm run db.create          # prints the database_id for wrangler.jsonc
+npm run db.migrate         # apply migrations/ to the real database
+npm run deploy             # wrangler deploy
+```
+
+`wrangler.jsonc` ships with a placeholder `database_id`; paste in the one
+`db.create` prints before deploying. The Worker serves `dist/` as static assets
+and runs only for the routes that are not in it.
 
 ## What this is a rebuild of
 
@@ -106,6 +121,44 @@ meaningfully harder than Kind.
 - **Nine named reindeer**, in order, before they go back to being a counter.
 - **Race your own ghost** — your best finish is drawn on the rail as you play.
 - **A card you can send on**, on winning or losing.
+- **A scoreboard per nice list**, at `/scoreboard/kind/` and its siblings, so a
+  board is a link you can send somebody.
+
+## The scoreboard
+
+Three boards, one per nice list, because the targets are a third apart and the
+workshop runs slower on the longer ones — a year on Exacting is not the same
+year as a year on Kind.
+
+Every finished year goes on a board, won or not, and the answer is always a
+place rather than a yes or no: 214th of 1,032 is a more interesting thing to be
+told than that you missed the top ten. Miss it and the board still comes back
+with your own row pinned below the tenth, and `?me=<id>` keeps it pinned if you
+send the link on.
+
+Both kinds of year are ranked on one integer, which makes a board one `ORDER BY`
+and a rank one `COUNT`:
+
+```
+score = won ?  1,000,000 + (728 − tick)          -- how much of the year was left
+             : floor(delivered / target × 999,999) -- how close the sleigh got
+```
+
+The two bands cannot collide, so any finished year outranks any unfinished one,
+and each group is separated by the measure that actually discriminates it —
+every winner stops within a present or two of the target, and every loser stops
+on Christmas Day. `delivered` is presents made, stored _and_ airborne: the
+minimum of the three objectives, which is the one number that means "on the
+sleigh".
+
+The score is computed on the server from the run's own numbers, never taken from
+the client, and those numbers are range-checked against what the game can
+produce. This is a Christmas card and not a bank: somebody determined can still
+post a plausible lie by driving the endpoint directly. The checks are there to
+keep the board readable, not to make it unforgeable.
+
+If there is no database bound — a preview without the binding, an outage — the
+board says so and the game plays on. Nothing about the year depends on it.
 
 ## Deliberately not in
 
@@ -129,11 +182,19 @@ src/
     upgrades.ts        the catalogue
     events.ts          the six calendar events
     engine.ts          step / click / buy / rates / projection
-    storage.ts         saved run, best finishes, theme
+    storage.ts         saved run, best finishes, theme, your name
+    score.ts           the ranking key, shared by client and server
     acceptance.test.ts 44 assertions, run by npm run test
   components/game/     year rail, resource tracks, workshop, catalogue,
-                       status bar, event dialog, setup, end card, snow
-  routes/index.tsx     the clock and the phase orchestration
+                       status bar, event dialog, setup, end card, snow,
+                       the board and the form that posts to it
+  server/              server-only: the D1 binding and the four queries
+  routes/
+    layout.tsx         the frame: snow, masthead, footer
+    index.tsx          the card — the premise and the choice of nice list
+    play/              the clock and the phase orchestration
+    scoreboard/        one board per nice list, read from D1 per request
+migrations/            the D1 schema
 ```
 
 The clock is derived from wall-clock time against an anchor rather than counted

@@ -1,9 +1,11 @@
 import { $, component$, useSignal, type QRL } from "@builder.io/qwik";
+import { Link } from "@builder.io/qwik-city";
 import { MONTH_TICKS, formatGameDate, progressAtTick } from "~/game/calendar";
 import { DIFFICULTIES, TOTAL_TICKS } from "~/game/constants";
 import { humanize } from "~/game/formulas";
 import type { Best } from "~/game/types";
 import type { GameState } from "~/game/types";
+import { ScorePost } from "./score-post";
 
 interface EndCardProps {
   state: GameState;
@@ -212,6 +214,9 @@ export const EndCard = component$<EndCardProps>((props) => {
         </p>
       )}
 
+      {/* The private best above is this browser's; the board below is everyone's. */}
+      <ScorePost state={state} />
+
       <div class="flex flex-wrap items-center gap-3">
         <button
           type="button"
@@ -227,6 +232,12 @@ export const EndCard = component$<EndCardProps>((props) => {
         >
           {copied.value ? "Copied" : "Copy the card"}
         </button>
+        <Link
+          href={`/scoreboard/${difficulty.id}/`}
+          class="border-rule-firm bg-surface font-display hover:bg-sunken border px-5 py-3 text-sm font-semibold transition-colors"
+        >
+          The scoreboard
+        </Link>
         <span class="text-ink-mute font-mono text-[0.6875rem]">
           {copied.value ? "Paste it to whoever sent you here." : "Send it on."}
         </span>

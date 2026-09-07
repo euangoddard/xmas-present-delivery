@@ -80,3 +80,7 @@ export const DIFFICULTIES: readonly Difficulty[] = [
 
 export const targetFor = (difficulty: Difficulty): number =>
   Math.floor(CHILDREN_ON_EARTH * difficulty.factor);
+
+/** Narrows an unknown route parameter or stored value to a real setting. */
+export const isDifficultyId = (value: unknown): value is Difficulty["id"] =>
+  DIFFICULTIES.some((entry) => entry.id === value);

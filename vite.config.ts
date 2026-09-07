@@ -19,10 +19,35 @@ errorOnDuplicatesPkgDeps(devDependencies, dependencies);
  * Note that Vite normally starts from `index.html` but the qwikCity plugin makes start at `src/entry.ssr.tsx` instead.
  */
 
-export default defineConfig(({ command, mode }): UserConfig => {
+/**
+ * `npm run dev` runs Vite's own server, which knows nothing about Cloudflare,
+ * so the D1 binding the scoreboard reads would simply not be there. Wrangler's
+ * platform proxy reads `wrangler.jsonc` and stands up the bindings locally —
+ * a real SQLite file under `.wrangler/state` — which Qwik City then hands to
+ * every request as `event.platform`. Builds do not need it: there the bindings
+ * are the Worker's own.
+ */
+const localBindings = async (
+  command: string,
+): Promise<Record<string, unknown>> => {
+  if (command !== "serve") return {};
+  try {
+    const { getPlatformProxy } = await import("wrangler");
+    const { env, cf, ctx } = await getPlatformProxy();
+    return { env, cf, ctx };
+  } catch (error) {
+    console.warn(
+      "[dev] no Cloudflare bindings — the scoreboard will be unavailable.",
+      error,
+    );
+    return {};
+  }
+};
+
+export default defineConfig(async ({ command, mode }): Promise<UserConfig> => {
   return {
     plugins: [
-      qwikCity(),
+      qwikCity({ platform: await localBindings(command) }),
       qwikVite(),
       tsconfigPaths({ root: "." }),
       tailwindcss(),

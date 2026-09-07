@@ -11,23 +11,27 @@
     "build": "qwik build",
     "build.client": "vite build",
     "build.preview": "vite build --ssr src/entry.preview.tsx",
-    "build.server": "qwik check-client src dist && vite build -c adapters/static/vite.config.ts",
+    "build.server": "qwik check-client src dist && vite build -c adapters/cloudflare-pages/vite.config.ts",
     "build.types": "tsc --incremental --noEmit",
-    "deploy": "echo 'Run \"npm run qwik add\" to install a server adapter'",
+    "deploy": "wrangler deploy",
     "dev": "vite --mode ssr",
     "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
     "og": "node scripts/og-image.mjs",
     "lint": "eslint \"src/**/*.ts*\"",
-    "preview": "qwik build preview && vite preview --open",
+    "preview": "qwik build && wrangler dev",
     "start": "vite --open --mode ssr",
     "qwik": "qwik",
-    "test": "esbuild src/game/acceptance.test.ts --bundle --format=cjs --platform=node --outfile=.scratch/acc.cjs --log-level=warning && node .scratch/acc.cjs"
+    "test": "esbuild src/game/acceptance.test.ts --bundle --format=cjs --platform=node --outfile=.scratch/acc.cjs --log-level=warning && node .scratch/acc.cjs",
+    "db.create": "wrangler d1 create xmas-present-delivery",
+    "db.migrate.local": "wrangler d1 migrations apply xmas-present-delivery --local",
+    "db.migrate": "wrangler d1 migrations apply xmas-present-delivery --remote"
   },
   "devDependencies": {
     "@builder.io/qwik": "^1.20.0",
     "@builder.io/qwik-city": "^1.20.0",
+    "@cloudflare/workers-types": "^5.20260906.1",
     "@eslint/js": "^9",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "26.4.1",
@@ -42,7 +46,8 @@
     "typescript-plugin-css-modules": "latest",
     "undici": "*",
     "vite": "7.3.1",
-    "vite-tsconfig-paths": "^6.1.1"
+    "vite-tsconfig-paths": "^6.1.1",
+    "wrangler": "^4.129.0"
   },
   "dependencies": {
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",

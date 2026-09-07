@@ -1,0 +1,38 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "xmas-present-delivery",
+  "compatibility_date": "2025-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  // The bundled Qwik City fetch handler. Static files are served from `dist`
+  // ahead of it, so the Worker only runs for the SSR routes and `server$` calls.
+  "main": "./server/entry.cloudflare-pages.js",
+  // The card's home, and the origin baked into the pre-rendered intro's
+  // canonical and og:image tags — see `origin` in the adapter config. The zone
+  // must already be on this Cloudflare account; `wrangler deploy` creates the
+  // DNS record and the route.
+  "routes": [
+    {
+      "pattern": "xmas-present-delivery.euans.space",
+      "custom_domain": true,
+    },
+  ],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    // Only the intro is pre-rendered, so an unmatched path is a route for the
+    // Worker to render — not a 404 for the asset server to answer.
+    "not_found_handling": "none",
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "xmas-present-delivery",
+      // Replace with the id printed by `npx wrangler d1 create xmas-present-delivery`.
+      "database_id": "670a6b06-1acb-4a0b-8a67-d1316c4d9668",
+      "migrations_dir": "migrations",
+    },
+  ],
+  "observability": {
+    "enabled": true,
+  },
+}
