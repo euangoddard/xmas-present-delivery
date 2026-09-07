@@ -64,42 +64,46 @@ export const SetupScreen = component$<SetupScreenProps>((props) => {
         </section>
 
         <section class="flex flex-col gap-4">
-          <fieldset class="border-rule bg-surface border">
-            <legend class="eyebrow px-4">How long is the nice list?</legend>
-            <div class="divide-rule divide-y">
-              {DIFFICULTIES.map((entry) => (
-                <label
-                  key={entry.id}
-                  class={[
-                    "flex cursor-pointer items-start gap-3 px-4 py-3 transition-colors",
-                    chosen.value === entry.id
-                      ? "bg-sunken"
-                      : "hover:bg-sunken/60",
-                  ].join(" ")}
-                >
-                  <input
-                    type="radio"
-                    name="difficulty"
-                    value={entry.id}
-                    checked={chosen.value === entry.id}
-                    onChange$={() => (chosen.value = entry.id)}
-                    class="mt-1 accent-[var(--brick)]"
-                  />
-                  <span class="min-w-0 flex-1">
-                    <span class="flex items-baseline justify-between gap-3">
-                      <span class="font-display text-sm font-semibold">
-                        {entry.label}
+          <fieldset class="m-0 border-0 p-0">
+            <legend class="eyebrow mb-2 block">
+              How long is the nice list?
+            </legend>
+            <div class="border-rule bg-surface border">
+              <div class="divide-rule divide-y">
+                {DIFFICULTIES.map((entry) => (
+                  <label
+                    key={entry.id}
+                    class={[
+                      "flex cursor-pointer items-start gap-3 px-4 py-3 transition-colors",
+                      chosen.value === entry.id
+                        ? "bg-sunken"
+                        : "hover:bg-sunken/60",
+                    ].join(" ")}
+                  >
+                    <input
+                      type="radio"
+                      name="difficulty"
+                      value={entry.id}
+                      checked={chosen.value === entry.id}
+                      onChange$={() => (chosen.value = entry.id)}
+                      class="mt-1 accent-[var(--brick)]"
+                    />
+                    <span class="min-w-0 flex-1">
+                      <span class="flex items-baseline justify-between gap-3">
+                        <span class="font-display text-sm font-semibold">
+                          {entry.label}
+                        </span>
+                        <span class="tnum text-ink-mute font-mono text-[0.6875rem]">
+                          {humanize(targetFor(entry))}
+                        </span>
                       </span>
-                      <span class="tnum text-ink-mute font-mono text-[0.6875rem]">
-                        {humanize(targetFor(entry))}
+                      <span class="text-ink-mute mt-0.5 block text-[0.8125rem] leading-snug">
+                        {entry.detail}
                       </span>
                     </span>
-                    <span class="text-ink-mute mt-0.5 block text-[0.8125rem] leading-snug">
-                      {entry.detail}
-                    </span>
-                  </span>
-                </label>
-              ))}
+                  </label>
+                ))}
+              </div>
             </div>
           </fieldset>
 
