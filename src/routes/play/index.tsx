@@ -166,26 +166,33 @@ export default component$(() => {
    * The minimized tracker.
    *
    * Pins once the full status bar/year rail/resource tracks block has
-   * scrolled (almost) entirely past the top of the viewport. "Almost" rather
-   * than "entirely": on a typical phone the block is nearly a screen tall by
-   * itself, so demanding every last pixel of it clear the viewport would mean
-   * scrolling past everything below it too — on a fresh run, before the
-   * workshop and catalogue have grown, there often isn't enough page left to
-   * do that at all. A small buffer, scaled to the viewport rather than to the
-   * block's own height, keeps the trigger reachable regardless of how tall
-   * the run's content currently is. Scrolling back up clears it the same way.
+   * scrolled entirely past the top of the viewport, i.e. its own bottom edge
+   * has gone above the top edge of the viewport. That test is independent of
+   * viewport height, unlike an earlier version that compared the block's
+   * position against a fraction of `window.innerHeight`: on a large viewport
+   * the block is often shorter than that fraction even before any scrolling,
+   * pinning it immediately, while on a short/narrow viewport the block is
+   * often taller than that fraction, so it could never clear the threshold
+   * at all. Scrolling back up clears it the same way.
+   *
+   * Both `state.phase` and `trackerRef.value` are tracked, not just the
+   * former: this task's first run happens as soon as the document is ready,
+   * which can land in the same tick as the earlier task that flips `phase`
+   * to "running" — before that change has been rendered into the DOM and the
+   * ref below has anything to point at. Tracking the ref too means the task
+   * runs again, this time with an element to measure, once the render that
+   * creates it actually commits.
    */
   // eslint-disable-next-line qwik/no-use-visible-task
   useVisibleTask$(({ track, cleanup }) => {
-    track(() => state.phase);
-    if (state.phase !== "running" || !trackerRef.value) return;
-    const el = trackerRef.value;
+    const phase = track(() => state.phase);
+    const el = track(() => trackerRef.value);
+    if (phase !== "running" || !el) return;
 
     let queued = false;
     const evaluate = () => {
       queued = false;
-      trackerPinned.value =
-        el.getBoundingClientRect().bottom < window.innerHeight * 0.35;
+      trackerPinned.value = el.getBoundingClientRect().bottom <= 0;
     };
     const onScrollOrResize = () => {
       if (queued) return;
