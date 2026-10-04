@@ -253,8 +253,12 @@ export default component$(() => {
         />
       )}
 
+      {/* The server renders this before the saved run or the search parameter
+          can be read, and the game replaces it a moment later. Holding a
+          screen's height keeps the footer out of view meanwhile, rather than
+          letting it sit under one line of text and then be shoved down. */}
       {state.phase === "setup" && (
-        <p class="text-ink-mute font-mono text-[0.6875rem]">
+        <p class="text-ink-mute min-h-[100dvh] font-mono text-[0.6875rem]">
           Harnessing the reindeer…
         </p>
       )}
