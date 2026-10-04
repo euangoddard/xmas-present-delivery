@@ -49,22 +49,30 @@ export const EndCard = component$<EndCardProps>((props) => {
   const delivered = Math.min(state.presents, state.capacity, state.power);
   const reach = state.target > 0 ? delivered / state.target : 0;
   const oneIn = reach > 0 ? Math.max(1, Math.round(1 / reach)) : 0;
+  // Capacity starts above zero and Father Christmas makes presents unaided, so
+  // an empty sleigh only ever means there was no herd to pull it — and "one
+  // child in 0" is not a sentence.
+  const grounded = state.power < 1;
 
   // Name the binding constraint, not the first unmet row. Presents can never
   // exceed capacity, so a short sleigh is the cause and a short score is the
   // symptom — advising more duplicators there would send the player back to
-  // repeat the same mistake.
+  // repeat the same mistake. With no herd at all, nothing else mattered.
   const advice = won
     ? "Try it again on a longer nice list."
-    : state.capacity < state.target
-      ? "Next year, build the sleigh before the presents — you cannot keep what you have nowhere to put."
-      : state.power < state.target
-        ? "Next year, get the herd in early. Reindeer take all year to train."
-        : "Next year, get the duplicator running sooner.";
+    : grounded
+      ? "Next year, find a reindeer early — even one gets the sleigh off the ground."
+      : state.capacity < state.target
+        ? "Next year, build the sleigh before the presents — you cannot keep what you have nowhere to put."
+        : state.power < state.target
+          ? "Next year, get the herd in early. Reindeer take all year to train."
+          : "Next year, get the duplicator running sooner.";
 
   const summary = won
     ? `I saved Christmas by ${formatGameDate(state.tick)} on ${difficulty.label} — ${humanize(state.presents)} presents, all aboard.`
-    : `The sleigh left on Christmas Eve with ${humanize(delivered)} presents — enough for one child in ${oneIn}. ${advice}`;
+    : grounded
+      ? `The sleigh never left the ground on Christmas Eve — there were no reindeer to pull it. ${advice}`
+      : `The sleigh left on Christmas Eve with ${humanize(delivered)} presents — enough for one child in ${humanize(oneIn)}. ${advice}`;
 
   const share = $(async () => {
     try {
@@ -96,11 +104,16 @@ export const EndCard = component$<EndCardProps>((props) => {
               with {Math.floor((TOTAL_TICKS - state.tick) / 2)} days of the year
               still to run.
             </>
+          ) : grounded ? (
+            <>
+              It never left the ground: there were no reindeer to pull it.{" "}
+              {advice}
+            </>
           ) : (
             <>
               It went out with{" "}
               <strong class="text-ink">{humanize(delivered)}</strong> presents
-              aboard — enough for one child in {oneIn}. {advice}
+              aboard — enough for one child in {humanize(oneIn)}. {advice}
             </>
           )}
         </p>
