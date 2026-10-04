@@ -18,7 +18,12 @@ function icon(preference: ThemePreference): JSXOutput {
   switch (preference) {
     case "system":
       return (
-        <svg key="system" viewBox="0 0 16 16" class="size-3.5" aria-hidden="true">
+        <svg
+          key="system"
+          viewBox="0 0 16 16"
+          class="size-3.5"
+          aria-hidden="true"
+        >
           <circle
             cx="8"
             cy="8"
