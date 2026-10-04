@@ -45,3 +45,10 @@ lerna-debug.log*
 
 # Cloudflare
 .wrangler
+
+# End-to-end tests
+.e2e-state
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache

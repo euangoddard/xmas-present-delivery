@@ -24,6 +24,7 @@
     "start": "vite --open --mode ssr",
     "qwik": "qwik",
     "test": "esbuild src/game/acceptance.test.ts --bundle --format=cjs --platform=node --outfile=.scratch/acc.cjs --log-level=warning && node .scratch/acc.cjs",
+    "test.e2e": "playwright test",
     "db.create": "wrangler d1 create xmas-present-delivery",
     "db.migrate.local": "wrangler d1 migrations apply xmas-present-delivery --local",
     "db.migrate": "wrangler d1 migrations apply xmas-present-delivery --remote"
@@ -33,6 +34,7 @@
     "@builder.io/qwik-city": "^1.20.0",
     "@cloudflare/workers-types": "^5.20260906.1",
     "@eslint/js": "^9",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "26.4.1",
     "eslint": "9.32.0",

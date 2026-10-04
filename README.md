@@ -13,9 +13,33 @@ npm install
 npm run db.migrate.local   # create the local D1 database
 npm run dev                # http://localhost:5173, with local bindings
 npm run test               # 44 acceptance tests against the game model
+npm run test.e2e           # play the year in a real browser, in about a minute
 npm run build              # dist/ (assets) and server/ (the Worker)
 npm run preview            # the built Worker under wrangler dev
 ```
+
+## End-to-end tests
+
+`npm run test.e2e` builds the card and drives it with Playwright, served by
+`wrangler dev` on port 4818 exactly as the Worker serves it (run
+`npx playwright install chromium` once first). It plays the happy paths: the
+card and each nice list, the clock and the save, the workshop and catalogue,
+all six calendar events, a year left to run out, and a year won through the
+catalogue and posted to the scoreboard — and checks that neither page shifts
+as it loads. Any error the page throws or logs fails the test it happened in.
+
+Twelve minutes of year are not waited out. Each test installs Playwright's
+fake clock and jumps `Date.now()` forward; the game's own catch-up — the same
+path a backgrounded tab takes — then steps every tick that is due. The clock is
+left free-running rather than paused, because Qwik's event handling waits on
+timers too.
+
+The suite runs against the build rather than `npm run dev` on purpose: the dev
+server injects styles late and adds Qwik's diagnostics overlay, so it reports
+layout shifts the real card does not have. The server gets a fresh D1 database
+under `.e2e-state/` on each start, so the suite never writes to the board
+`npm run dev` or `npm run preview` use. Set `E2E_REUSE_SERVER=1` to keep a
+server between runs while iterating.
 
 ## Deploying
 
@@ -195,6 +219,7 @@ src/
     play/              the clock and the phase orchestration
     scoreboard/        one board per nice list, read from D1 per request
 migrations/            the D1 schema
+e2e/                   Playwright specs, and helpers that fast-forward the year
 ```
 
 The clock is derived from wall-clock time against an anchor rather than counted
